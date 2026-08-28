@@ -1,0 +1,81 @@
+<svg viewBox="0 0 960 440" xmlns="http://www.w3.org/2000/svg" font-family="Helvetica, Arial, sans-serif">
+  <rect x="0" y="0" width="960" height="440" fill="#ffffff"/>
+
+  <!-- ===================== LEFT PANEL: TOP-DOWN VIEW (coxa) ===================== -->
+  <text x="220" y="30" font-size="18" font-weight="bold" text-anchor="middle" fill="#1f2933">Top view — coxa rotation</text>
+
+  <!-- axes -->
+  <line x1="80" y1="380" x2="80" y2="60" stroke="#c7ccd1" stroke-width="2"/>
+  <line x1="80" y1="380" x2="420" y2="380" stroke="#c7ccd1" stroke-width="2"/>
+  <text x="80" y="50" font-size="13" fill="#8a939b" text-anchor="middle">Y</text>
+  <text x="430" y="384" font-size="13" fill="#8a939b" text-anchor="middle">X</text>
+
+  <!-- reference dashed ray along +X -->
+  <line x1="80" y1="380" x2="380" y2="380" stroke="#c7ccd1" stroke-width="1.5" stroke-dasharray="5,4"/>
+
+  <!-- coxa link -->
+  <line x1="80" y1="380" x2="230" y2="290" stroke="#2f6feb" stroke-width="4"/>
+  <circle cx="80" cy="380" r="6" fill="#1f2933"/>
+  <circle cx="230" cy="290" r="5" fill="#1f2933"/>
+  <text x="150" y="352" font-size="13" fill="#2f6feb">coxa</text>
+
+  <!-- effective horizontal reach (femur+tibia projected) -->
+  <line x1="230" y1="290" x2="360" y2="215" stroke="#c2410c" stroke-width="4" stroke-dasharray="2,3"/>
+  <circle cx="360" cy="215" r="5" fill="#1f2933"/>
+  <text x="330" y="245" font-size="12" fill="#c2410c">xf + xt</text>
+
+  <!-- coxa angle arc -->
+  <path d="M 140 380 A 60 60 0 0 0 121 337" fill="none" stroke="#2f6feb" stroke-width="1.5"/>
+  <text x="128" y="368" font-size="13" fill="#2f6feb">coxa_angle</text>
+
+  <text x="370" y="200" font-size="13" fill="#1f2933" font-weight="bold">foot (x, y)</text>
+
+  <!-- ===================== RIGHT PANEL: SIDE VIEW (femur/tibia) ===================== -->
+  <text x="680" y="30" font-size="18" font-weight="bold" text-anchor="middle" fill="#1f2933">Side view — femur / tibia</text>
+
+  <!-- axes -->
+  <line x1="520" y1="380" x2="520" y2="60" stroke="#c7ccd1" stroke-width="2"/>
+  <line x1="520" y1="380" x2="880" y2="380" stroke="#c7ccd1" stroke-width="2"/>
+  <text x="520" y="50" font-size="13" fill="#8a939b" text-anchor="middle">Z (height)</text>
+  <text x="890" y="384" font-size="13" fill="#8a939b" text-anchor="middle">horizontal</text>
+
+  <!-- reference dashed ray along horizontal from femur joint -->
+  <line x1="560" y1="360" x2="870" y2="360" stroke="#c7ccd1" stroke-width="1.5" stroke-dasharray="5,4"/>
+
+  <!-- femur joint F -->
+  <circle cx="560" cy="360" r="6" fill="#1f2933"/>
+  <text x="545" y="400" font-size="13" fill="#1f2933">F (femur joint)</text>
+
+  <!-- target line F-P (dashed) -->
+  <line x1="560" y1="360" x2="810" y2="215" stroke="#8a939b" stroke-width="2" stroke-dasharray="6,4"/>
+
+  <!-- femur link F-K -->
+  <line x1="560" y1="360" x2="700" y2="160" stroke="#2f6feb" stroke-width="4"/>
+  <circle cx="700" cy="160" r="6" fill="#1f2933"/>
+  <text x="600" y="250" font-size="13" fill="#2f6feb">femur</text>
+
+  <!-- tibia link K-P -->
+  <line x1="700" y1="160" x2="810" y2="215" stroke="#c2410c" stroke-width="4"/>
+  <circle cx="810" cy="215" r="6" fill="#1f2933"/>
+  <text x="745" y="175" font-size="13" fill="#c2410c">tibia</text>
+
+  <text x="810" y="240" font-size="13" fill="#1f2933" font-weight="bold" text-anchor="middle">P — foot target</text>
+  <text x="810" y="256" font-size="12" fill="#5b6570" text-anchor="middle">(x, y, z)</text>
+  <text x="705" y="145" font-size="13" fill="#1f2933">K (knee joint)</text>
+
+  <!-- angle alpha: horizontal to target_line, at F -->
+  <path d="M 640 360 A 80 80 0 0 0 604 302" fill="none" stroke="#8a939b" stroke-width="1.5"/>
+  <text x="612" y="335" font-size="12" fill="#5b6570">alpha</text>
+
+  <!-- angle beta: target_line to femur, at F -->
+  <path d="M 604 302 A 80 80 0 0 0 590 280" fill="none" stroke="#2f6feb" stroke-width="1.5"/>
+  <text x="582" y="300" font-size="12" fill="#2f6feb">beta</text>
+
+  <!-- knee angle at K, between K-F and K-P -->
+  <path d="M 680 190 A 40 40 0 0 0 730 195" fill="none" stroke="#c2410c" stroke-width="1.5"/>
+  <text x="695" y="205" font-size="12" fill="#c2410c">knee_angle</text>
+
+  <!-- legend -->
+  <text x="520" y="410" font-size="12" fill="#5b6570">femur_angle = alpha + beta</text>
+  <text x="520" y="428" font-size="12" fill="#5b6570">tibia_angle = (femur_angle + 180 + knee_angle) mod 360</text>
+</svg>
