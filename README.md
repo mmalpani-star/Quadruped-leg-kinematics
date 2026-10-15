@@ -80,7 +80,14 @@ z = zf + zt
   <em>Close-up of a single leg: coxa, femur, and tibia servos with 3D-printed links</em>
 </p>
 
-The frame and all four legs are assembled. It isn't walking yet — there are some hardware issues still being worked through — but the mechanical structure this kinematics math was written for is real and built.
+The frame and all four legs are assembled. It isn't walking yet — there are some hardware issues still being worked through — but the mechanical structure this kinematics math was written for is real and built. NOTE : ## Mechanical Design Attribution
+
+The quadruped's mechanical design and 3D-printable chassis are based on an existing design created by **Maker 101**. The original design files can be found at [https://www.pcbway.com/project/shareproject/Quadruped_Spider_Robot_3D_Printed_Parts_SG90_Servo_Motor_Arduino_Nano_10107fe3.html](https://www.pcbway.com/project/shareproject/Quadruped_Spider_Robot_3D_Printed_Parts_SG90_Servo_Motor_Arduino_Nano_10107fe3.html).
+
+Credit for the mechanical design belongs to the original creator. My work focuses on developing a custom Python-based forward and inverse kinematics framework and exploring locomotion control and AI integration for the quadruped platform.
+
+The original design is used in accordance with its applicable license.
+
 
 ## Requirements
 
