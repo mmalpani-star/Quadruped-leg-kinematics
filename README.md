@@ -266,6 +266,28 @@ leg = Leg(3, 5.6, 8)          # coxa, femur, tibia lengths in cm
 leg.tibia(0, 30, 40)          # foot position for (coxa, femur, tibia) = (0°, 30°, 40°)
 ```
 
+### Hand derivation
+
+I derived this model by hand before writing the code: [`notes/3d_fk_derivation.pdf`](./notes/3d_fk_derivation.pdf) (5 scanned pages). It covers:
+- the leg geometry and coordinate frames,
+- the coxa–femur joint position `[Lc·cos θc, 0, −Lc·sin θc]`,
+- the femur's local frame,
+- the `R_y(θc) · R_z(θf) · R_z(θt)` transformation,
+
+and ends in the closed-form foot position:
+
+<p align="center">
+  <img src="./notes/3d_fk_derivation_final_formula.jpg" alt="Handwritten derivation ending in the boxed closed-form 3D foot position" width="600">
+</p>
+
+```
+x = cos θc · [Lc + Lf·cos θf + Lt·cos(θf + θt)]
+y =          Lf·sin θf + Lt·sin(θf + θt)
+z = −sin θc · [Lc + Lf·cos θf + Lt·cos(θf + θt)]
+```
+
+Checked against `numpyfk3d.py` over 1,000 random joint-angle sets, the handwritten formula and the code agree to within 4e-15 cm.
+
 ## Animated 3D Visualizer (`fk3d/quadruped_visualizer.py`)
 
 <p align="center">
@@ -416,7 +438,9 @@ quadruped-leg-kinematics/
     ├── page4_knee_and_femur_angle_solve.jpeg
     ├── page5_above_below_case_analysis.jpeg
     ├── page6_summary_and_coxa_angle.jpeg
-    └── page7_knee_angle_and_joint_convention.jpeg
+    ├── page7_knee_angle_and_joint_convention.jpeg
+    ├── 3d_fk_derivation.pdf                  # Hand derivation of the 3D FK model (fk3d/)
+    └── 3d_fk_derivation_final_formula.jpg    # Its final page, shown above
 ```
 
 ## Known Issues / Work in Progress
