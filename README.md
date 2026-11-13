@@ -9,10 +9,10 @@ A small Python OOP framework for computing **forward and inverse kinematics** of
 | [`mujoco_sim/`](./mujoco_sim) | MuJoCo model built from the printed STL parts; walking, turning and jumping |
 
 <p align="center">
-  <a href="./media/videos/quadruped-walking.mp4"><img src="./media/images/quadruped-walking-poster.jpg" alt="MuJoCo simulation of the quadruped walking" width="32%"></a>
-  <a href="./media/videos/quadruped-turning.mp4"><img src="./media/images/quadruped-turning-poster.jpg" alt="MuJoCo simulation of the quadruped turning in place" width="32%"></a>
-  <a href="./media/videos/quadruped-jumping.mp4"><img src="./media/images/quadruped-jumping-poster.jpg" alt="MuJoCo simulation of the quadruped jumping" width="32%"></a><br>
-  <em>Walking · Turning · Jumping in MuJoCo (click an image to play the video)</em>
+  <a href="./media/videos/quadruped-walking.mp4"><img src="./media/gifs/quadruped-walking.gif" alt="MuJoCo simulation of the quadruped walking" width="32%"></a>
+  <a href="./media/videos/quadruped-turning.mp4"><img src="./media/gifs/quadruped-turning.gif" alt="MuJoCo simulation of the quadruped turning in place" width="32%"></a>
+  <a href="./media/videos/quadruped-jumping.mp4"><img src="./media/gifs/quadruped-jumping.gif" alt="MuJoCo simulation of the quadruped jumping" width="32%"></a><br>
+  <em>Walking · Turning (3× speed) · Jumping in MuJoCo. Click any animation for the full-length video.</em>
 </p>
 
 ## Overview
@@ -269,8 +269,8 @@ leg.tibia(0, 30, 40)          # foot position for (coxa, femur, tibia) = (0°, 3
 ## Animated 3D Visualizer (`fk3d/quadruped_visualizer.py`)
 
 <p align="center">
-  <a href="./media/videos/matplotlib-fk-animation.mp4"><img src="./media/images/matplotlib-fk-animation-poster.jpg" alt="Matplotlib 3D visualization of the leg with joint sliders and a foot trajectory trail" width="700"></a><br>
-  <em>Forward kinematics in Matplotlib: animated joints, live sliders, and a foot trail (click to play)</em>
+  <a href="./media/videos/matplotlib-fk-animation.mp4"><img src="./media/gifs/matplotlib-fk-animation.gif" alt="Matplotlib 3D visualization of the leg with joint sliders and a foot trajectory trail" width="600"></a><br>
+  <em>Forward kinematics in Matplotlib: animated joints, live sliders, and a foot trail. Click for the full video.</em>
 </p>
 
 An interactive Matplotlib window built on `numpyfk3d.Leg`:
@@ -312,7 +312,7 @@ So the simulation uses exactly the same joint conventions as the FK model.
 ### Walking
 
 <p align="center">
-  <a href="./media/videos/quadruped-walking.mp4"><img src="./media/images/quadruped-walking-poster.jpg" alt="Quadruped walking with a crawl gait in MuJoCo" width="700"></a>
+  <a href="./media/videos/quadruped-walking.mp4"><img src="./media/gifs/quadruped-walking.gif" alt="Quadruped walking with a crawl gait in MuJoCo" width="520"></a>
 </p>
 
 A statically stable **crawl gait** ([`walk_quadruped.py`](./mujoco_sim/walk_quadruped.py)). One leg lifts at a time (rear-left → front-left → rear-right → front-right), so three feet always hold the body up. The legs stand in an X shape (front feet angled 35° forward, rear feet 35° back) to give a large support area.
@@ -324,7 +324,7 @@ A statically stable **crawl gait** ([`walk_quadruped.py`](./mujoco_sim/walk_quad
 ### Turning
 
 <p align="center">
-  <a href="./media/videos/quadruped-turning.mp4"><img src="./media/images/quadruped-turning-poster.jpg" alt="Quadruped turning in place in MuJoCo" width="700"></a>
+  <a href="./media/videos/quadruped-turning.mp4"><img src="./media/gifs/quadruped-turning.gif" alt="Quadruped turning in place in MuJoCo" width="520"></a>
 </p>
 
 [`turn_quadruped.py`](./mujoco_sim/turn_quadruped.py) uses the same crawl gait with a `turn` command. Left-side and right-side legs get opposite stride directions, like a tank steering. Which leg is in the air, and when, never changes, so the robot always has three feet down.
@@ -335,7 +335,7 @@ A statically stable **crawl gait** ([`walk_quadruped.py`](./mujoco_sim/walk_quad
 ### Jumping
 
 <p align="center">
-  <a href="./media/videos/quadruped-jumping.mp4"><img src="./media/images/quadruped-jumping-poster.jpg" alt="Quadruped jumping in MuJoCo" width="700"></a>
+  <a href="./media/videos/quadruped-jumping.mp4"><img src="./media/gifs/quadruped-jumping.gif" alt="Quadruped jumping in MuJoCo" width="520"></a>
 </p>
 
 [`jump_quadruped.py`](./mujoco_sim/jump_quadruped.py) runs a timed sequence on all four legs at once. It crouches (body height about 2.7 cm), then makes an instant step to near-straight legs (about 13.1 cm), holds them, absorbs the landing, and stands back up. Both poses were found by scanning femur/tibia angle pairs and letting each settle under gravity.
@@ -406,8 +406,9 @@ quadruped-leg-kinematics/
 │   ├── leg_kinematics_diagram.svg
 │   └── workspace_visualization.png
 ├── media/
-│   ├── images/                    # Build photos and video posters
-│   └── videos/                    # Walking, turning, jumping, Matplotlib animation
+│   ├── images/                    # Build photos
+│   ├── gifs/                      # Short looping previews shown in this README
+│   └── videos/                    # Full-length walking, turning, jumping, Matplotlib videos
 └── notes/
     ├── page1_leg_geometry_and_intro.jpeg
     ├── page2_tibia_and_femur_angle_setup.jpeg
