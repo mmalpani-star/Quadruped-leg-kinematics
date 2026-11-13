@@ -12,3 +12,9 @@ env/
 .idea/
 .DS_Store
 Thumbs.db
+
+# MuJoCo simulation: third-party STL parts (Maker 101 design) and the
+# binary mesh copies generated from them are not redistributed here -
+# see README "MuJoCo Simulation" for where to download them.
+stl_parts/
+mujoco_sim/meshes/

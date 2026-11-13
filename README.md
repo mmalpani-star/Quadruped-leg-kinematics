@@ -1,6 +1,19 @@
 # Quadruped Leg Kinematics
 
-A small Python OOP framework for computing **forward and inverse kinematics** of a 3-DOF (coxa–femur–tibia) robot leg — the standard joint layout used on most hobbyist quadruped and hexapod robots.
+A small Python OOP framework for computing **forward and inverse kinematics** of a 3-DOF (coxa–femur–tibia) robot leg — the standard joint layout used on most hobbyist quadruped and hexapod robots — plus a **3D NumPy forward-kinematics model**, an **animated Matplotlib visualizer**, and a **MuJoCo physics simulation** of the full robot that walks, turns, and jumps.
+
+| | |
+|---|---|
+| [`src/`](./src) | Original `Leg` / `Servo` classes: FK, IK, simulated servo |
+| [`fk3d/`](./fk3d) | 3D forward kinematics with rotation matrices, and an animated Matplotlib visualizer |
+| [`mujoco_sim/`](./mujoco_sim) | MuJoCo model built from the printed STL parts; walking, turning and jumping |
+
+<p align="center">
+  <a href="./media/videos/quadruped-walking.mp4"><img src="./media/images/quadruped-walking-poster.jpg" alt="MuJoCo simulation of the quadruped walking" width="32%"></a>
+  <a href="./media/videos/quadruped-turning.mp4"><img src="./media/images/quadruped-turning-poster.jpg" alt="MuJoCo simulation of the quadruped turning in place" width="32%"></a>
+  <a href="./media/videos/quadruped-jumping.mp4"><img src="./media/images/quadruped-jumping-poster.jpg" alt="MuJoCo simulation of the quadruped jumping" width="32%"></a><br>
+  <em>Walking · Turning · Jumping in MuJoCo (click an image to play the video)</em>
+</p>
 
 ## Overview
 
@@ -80,7 +93,9 @@ z = zf + zt
   <em>Close-up of a single leg: coxa, femur, and tibia servos with 3D-printed links</em>
 </p>
 
-The frame and all four legs are assembled. It isn't walking yet — there are some hardware issues still being worked through — but the mechanical structure this kinematics math was written for is real and built. NOTE : ## Mechanical Design Attribution
+The frame and all four legs are assembled. The physical robot isn't walking yet — there are some hardware issues still being worked through — but the mechanical structure this kinematics math was written for is real and built, and a physics model of it now walks, turns, and jumps in simulation (see [MuJoCo Simulation](#mujoco-simulation) below).
+
+## Mechanical Design Attribution
 
 The quadruped's mechanical design and 3D-printable chassis are based on an existing design created by **Maker 101**. The original design files can be found at [https://www.pcbway.com/project/shareproject/Quadruped_Spider_Robot_3D_Printed_Parts_SG90_Servo_Motor_Arduino_Nano_10107fe3.html](https://www.pcbway.com/project/shareproject/Quadruped_Spider_Robot_3D_Printed_Parts_SG90_Servo_Motor_Arduino_Nano_10107fe3.html).
 
@@ -91,7 +106,7 @@ The original design is used in accordance with its applicable license.
 
 ## Requirements
 
-`src/leg.py` and `src/servo.py` need only the Python standard library. `examples/visualize_workspace.py` additionally needs `numpy` and `matplotlib`:
+`src/leg.py` and `src/servo.py` need only the Python standard library. `examples/visualize_workspace.py` and `fk3d/` need `numpy` and `matplotlib`; `mujoco_sim/` additionally needs `mujoco` (developed with MuJoCo 4.0.1 on Python 3.13):
 
 ```bash
 pip install -r requirements.txt
@@ -228,16 +243,162 @@ leg.inverse_kinematics(8, 2, -4)       # -> (14.04, 44.21, 278.86)
 leg.inverse_kinematics(50, 0, 0)       # -> 'Target position is unreachable'
 ```
 
+## 3D Forward Kinematics (`fk3d/numpyfk3d.py`)
+
+A second, fully 3D forward-kinematics model written with NumPy rotation matrices. It is the reference model that the MuJoCo simulation below is validated against.
+
+**Coordinate frame:** +X is the initial coxa direction, +Y is vertical (the coxa servo's axis), +Z completes a right-handed frame. All angles are in degrees.
+
+- `coxa(theta_c)` → femur servo centre. The coxa rotates about +Y with `R_y(θc)`; positive `θc` swings the leg from +X toward −Z.
+- `femur(theta_c, theta_f)` → knee. `θf = 0` points the femur along the coxa's local +X; positive lifts it toward local +Y.
+- `tibia(theta_c, theta_f, theta_t)` → foot. The tibia rotates in the same local plane as the femur, so the foot is `R_y(θc) · R_z(θf) · R_z(θt) · [lt, 0, 0]` added to the knee position.
+
+```
+R_y(θc) = [[ cos θc, 0, sin θc],
+           [ 0,      1, 0     ],
+           [-sin θc, 0, cos θc]]
+```
+
+```python
+from numpyfk3d import Leg
+
+leg = Leg(3, 5.6, 8)          # coxa, femur, tibia lengths in cm
+leg.tibia(0, 30, 40)          # foot position for (coxa, femur, tibia) = (0°, 30°, 40°)
+```
+
+## Animated 3D Visualizer (`fk3d/quadruped_visualizer.py`)
+
+<p align="center">
+  <a href="./media/videos/matplotlib-fk-animation.mp4"><img src="./media/images/matplotlib-fk-animation-poster.jpg" alt="Matplotlib 3D visualization of the leg with joint sliders and a foot trajectory trail" width="700"></a><br>
+  <em>Forward kinematics in Matplotlib: animated joints, live sliders, and a foot trail (click to play)</em>
+</p>
+
+An interactive Matplotlib window built on `numpyfk3d.Leg`:
+
+- Three sliders set the coxa, femur and tibia angles; the leg updates in real time.
+- A `FuncAnimation` drives all three joints along smooth periodic trajectories, with a magenta trail of the last 400 foot positions.
+- **Pause / Resume** button. Touching any slider pauses the animation; Resume blends smoothly from the slider pose back into the motion, so the leg never jumps.
+- Link lengths are checked every frame (3 / 5.6 / 8 cm) and only reported if they drift.
+
+```bash
+cd fk3d
+python quadruped_visualizer.py
+```
+
+## MuJoCo Simulation
+
+A physics model of the whole robot, built directly from the 3D-printed STL parts, in [`mujoco_sim/`](./mujoco_sim).
+
+### How the model was built
+
+- **Joint pivots come from the parts themselves**, not from guesses. They were located from hole features in the meshes: the SG90 mounting-ear holes (28 mm apart), the servo-horn screw holes, the 6 mm bearing holes, and the pin of the `s_hold` idler bearing. The coxa axis on the body comes from the bottom plate's pivot bosses.
+- **Measured link lengths** (pivot to pivot): coxa 27.5 mm, femur 55.0 mm, tibia 80.0 mm (knee to foot tip). These are slightly different from the 3 / 5.6 / 8 cm used in the FK code; the simulation uses the measured values.
+- **Approximations, clearly marked in the code:** the SG90 servos are datasheet-sized boxes (9 g, 0.176 N·m stall torque); printed-part masses assume PLA at 100% infill; servo gains are estimates.
+- Left and right legs are mirror images of the same validated leg.
+
+### Validation against the FK code
+
+[`validate_leg.py`](./mujoco_sim/validate_leg.py) runs a single MuJoCo leg and `numpyfk3d.Leg` through 208 joint-angle sets:
+
+| Check | Result |
+|---|---|
+| Femur servo and knee vs `numpyfk3d.Leg` (STL lengths) | match to ~4e-15 cm (floating-point rounding) |
+| Foot vs the same FK | within 0.01 mm |
+| Link lengths during motion | constant to 1e-14 cm |
+| Body and coxa servo axis under actuation | do not move |
+
+So the simulation uses exactly the same joint conventions as the FK model.
+
+### Walking
+
+<p align="center">
+  <a href="./media/videos/quadruped-walking.mp4"><img src="./media/images/quadruped-walking-poster.jpg" alt="Quadruped walking with a crawl gait in MuJoCo" width="700"></a>
+</p>
+
+A statically stable **crawl gait** ([`walk_quadruped.py`](./mujoco_sim/walk_quadruped.py)). One leg lifts at a time (rear-left → front-left → rear-right → front-right), so three feet always hold the body up. The legs stand in an X shape (front feet angled 35° forward, rear feet 35° back) to give a large support area.
+
+- About **70 cm in 20 s** (3.5 cm/s), drifting under 1 mm sideways, with body tilt at most 4.4°.
+- Peak servo torque while walking is about 0.03 N·m, roughly 17% of SG90 stall.
+- A trot (two legs at a time) was tried first, but with these widely splayed legs the body rolled over the diagonal.
+
+### Turning
+
+<p align="center">
+  <a href="./media/videos/quadruped-turning.mp4"><img src="./media/images/quadruped-turning-poster.jpg" alt="Quadruped turning in place in MuJoCo" width="700"></a>
+</p>
+
+[`turn_quadruped.py`](./mujoco_sim/turn_quadruped.py) uses the same crawl gait with a `turn` command. Left-side and right-side legs get opposite stride directions, like a tank steering. Which leg is in the air, and when, never changes, so the robot always has three feet down.
+
+- Turns in place at about **14°/s**, drifting under 0.5 cm during a 5-second turn.
+- `forward` and `turn` combine, so it can also walk along a curve.
+
+### Jumping
+
+<p align="center">
+  <a href="./media/videos/quadruped-jumping.mp4"><img src="./media/images/quadruped-jumping-poster.jpg" alt="Quadruped jumping in MuJoCo" width="700"></a>
+</p>
+
+[`jump_quadruped.py`](./mujoco_sim/jump_quadruped.py) runs a timed sequence on all four legs at once. It crouches (body height about 2.7 cm), then makes an instant step to near-straight legs (about 13.1 cm), holds them, absorbs the landing, and stands back up. Both poses were found by scanning femur/tibia angle pairs and letting each settle under gravity.
+
+- About **11 cm of liftoff** and **~194 ms** of flight. The robot lands upright with 0° tilt, repeatably.
+- It uses the same SG90 servo model as walking. Nothing was strengthened to make the jump work; the thrust uses the full 0.176 N·m stall torque.
+- Flight time counts only stretches of at least 15 ms with all four feet off the ground. Shorter stretches are the stiff legs chattering against the floor while settling, not real flight.
+
+### Running the simulation
+
+The STL parts are **not included in this repo**. They are Maker 101's design (see [Mechanical Design Attribution](#mechanical-design-attribution)).
+
+1. Download them from the PCBWay project page linked above.
+2. Put these files in a `stl_parts/` folder at the repo root: `body_u`, `body_d`, `coxa_l`, `femur_1`, `tibia_l` and `s_hold` (`*_PCBWay Community.stl`).
+3. Build the models. `build_leg_model.py` converts the ASCII STLs to binary copies in `mujoco_sim/meshes/` (MuJoCo only reads binary STL) and writes `quadruped_leg.xml`:
+
+```bash
+cd mujoco_sim
+python build_leg_model.py          # single leg  -> quadruped_leg.xml
+python build_quadruped_model.py    # four legs   -> quadruped.xml
+```
+
+Then:
+
+```bash
+python validate_leg.py             # compare MuJoCo against numpyfk3d.Leg
+python view_leg.py                 # single leg with servo sliders
+mjpython walk_quadruped.py         # walking
+mjpython turn_quadruped.py         # walk, turn left, walk, turn right, walk on an arc
+mjpython jump_quadruped.py         # repeated jumps
+python walk_quadruped.py --test    # headless measurements (also turn_ / jump_)
+```
+
+On macOS the live viewer needs `mjpython`, which installs with the `mujoco` package.
+
+**Limitations:**
+- **Open-loop control:** every motion is a fixed joint trajectory with no balance feedback.
+- **Collisions:** legs collide only with the floor, not with each other.
+- **Tibia axis:** the STL holes support the assumption that the tibia rotates in the femur's plane, but this hasn't been checked on the physical robot yet.
+
 ## Project Structure
 
 ```
 quadruped-leg-kinematics/
 ├── README.md
 ├── LICENSE
-├── .gitignore
+├── requirements.txt
 ├── src/
 │   ├── leg.py      # Leg class: forward_kinematics() and inverse_kinematics()
 │   └── servo.py    # Servo class: simple simulated servo with move_to()
+├── fk3d/
+│   ├── numpyfk3d.py              # 3D forward kinematics with rotation matrices
+│   └── quadruped_visualizer.py   # Animated Matplotlib visualizer with sliders
+├── mujoco_sim/
+│   ├── build_leg_model.py        # Single-leg MJCF from the STL parts (all measured pivots)
+│   ├── build_quadruped_model.py  # Four-leg MJCF (reuses the single-leg geometry)
+│   ├── validate_leg.py           # MuJoCo vs numpyfk3d.Leg comparison
+│   ├── view_leg.py               # Single leg in the viewer, servo sliders
+│   ├── walk_quadruped.py         # Crawl gait (forward / turn commands)
+│   ├── turn_quadruped.py         # Walk, turn in place, walk on an arc
+│   ├── jump_quadruped.py         # Crouch -> thrust -> land jump sequence
+│   ├── quadruped_leg.xml         # Generated single-leg model
+│   └── quadruped.xml             # Generated four-leg model
 ├── examples/
 │   ├── demo.py                    # Runnable usage example
 │   └── visualize_workspace.py     # Generates the workspace plot below
@@ -245,9 +406,8 @@ quadruped-leg-kinematics/
 │   ├── leg_kinematics_diagram.svg
 │   └── workspace_visualization.png
 ├── media/
-│   └── images/
-│       ├── quadruped_full_build.jpeg
-│       └── leg_closeup.jpeg
+│   ├── images/                    # Build photos and video posters
+│   └── videos/                    # Walking, turning, jumping, Matplotlib animation
 └── notes/
     ├── page1_leg_geometry_and_intro.jpeg
     ├── page2_tibia_and_femur_angle_setup.jpeg
@@ -266,10 +426,12 @@ quadruped-leg-kinematics/
 ## Roadmap
 
 - [ ] Integrate `Servo` instances into `Leg` so joint limits are enforced automatically during IK
-- [ ] Add a `Quadruped` class to coordinate all four legs together
-- [ ] Basic gait generation (trot, walk, etc.)
+- [x] Coordinate all four legs together (done in the MuJoCo simulation)
+- [x] Basic gait generation: crawl walk, turning, and a jump (in simulation)
 - [ ] Unit tests for FK/IK accuracy and edge cases
-- [ ] Live visualization of leg position (e.g. matplotlib animation)
+- [x] Live visualization of leg position (Matplotlib animation in `fk3d/`)
+- [ ] Transfer the simulated gaits to the physical robot
+- [ ] Closed-loop balance (feedback instead of fixed joint trajectories)
 
 ## License
 
